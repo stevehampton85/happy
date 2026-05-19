@@ -1,91 +1,409 @@
-<script>
-        // Adjusted points so a perfect score is exactly 100
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Evaluator</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        #app {
+            background-color: var(--card-bg);
+            max-width: 600px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 30px;
+            position: relative;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        h1, h2 {
+            margin-bottom: 20px;
+            color: var(--text-main);
+        }
+
+        p {
+            margin-bottom: 20px;
+            color: var(--text-muted);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 10px 0;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .radio-option {
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .radio-option:hover {
+            border-color: var(--primary);
+        }
+
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button.secondary {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        button.secondary:hover {
+            background-color: var(--bg-color);
+        }
+
+        /* Modal Styles */
+        #help-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 12px;
+            padding: 30px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .t-chart {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .t-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .t-column h3 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            resize: vertical;
+        }
+
+        #tally-result {
+            margin: 20px 0;
+            padding: 15px;
+            background: var(--bg-color);
+            border-radius: 6px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .custom-reason-box {
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .t-chart {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        
+        <div id="start-screen" class="screen active">
+            <h1>Purchase Evaluator</h1>
+            <p>Before you buy, let's run the numbers and check the logic to maximize your happiness.</p>
+            
+            <div class="input-group">
+                <label for="item-name">What are you buying?</label>
+                <input type="text" id="item-name" placeholder="e.g., New espresso machine" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 15px;">
+                
+                <label for="cost">Estimated Cost ($):</label>
+                <input type="number" id="cost" placeholder="0.00">
+                
+                <label>
+                    <input type="checkbox" id="tax-checkbox">
+                    Calculate true out-of-pocket cost (Add 13% HST)
+                </label>
+            </div>
+            
+            <p id="total-cost-display" style="font-weight: bold; display: none;">Total Cost: $<span id="calculated-cost">0.00</span></p>
+
+            <button onclick="startEvaluation()">Begin Evaluation</button>
+        </div>
+
+        <div id="necessity-screen" class="screen">
+            <h2>The Gatekeeper</h2>
+            <p>Is this purchase an absolute necessity?</p>
+            <button onclick="handleNecessity('yes')">Yes, I have no choice</button>
+            <button class="secondary" onclick="handleNecessity('no')">No, this is discretionary</button>
+        </div>
+
+        <div id="mandatory-screen" class="screen">
+            <h2 style="color: var(--success);">Make the purchase.</h2>
+            <p>You have determined this is a necessity. There is no need to evaluate the emotional return on essential items. Make the purchase and move on with your day.</p>
+            <button onclick="resetApp()">Start Over</button>
+        </div>
+
+        <div id="question-screen" class="screen">
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <h2 id="question-title">Question Text</h2>
+            <div id="options-container" class="radio-group">
+                </div>
+            <button class="secondary" onclick="openHelpModal()">Help Me Answer (Angel vs. Devil)</button>
+            <button onclick="nextQuestion()">Next Question</button>
+        </div>
+
+        <div id="result-screen" class="screen">
+            <h2>Evaluation Complete</h2>
+            <div style="text-align: center; margin: 30px 0;">
+                <h1 id="final-score" style="font-size: 48px; margin: 0;">0/100</h1>
+                <p>Happiness Score</p>
+            </div>
+            <h3 id="recommendation-title" style="margin-bottom: 10px;"></h3>
+            <p id="recommendation-text"></p>
+            
+            <div class="custom-reason-box">
+                <h4 style="margin-bottom: 10px; color: var(--text-main);">Why did you get this score?</h4>
+                <div id="custom-reason-text"></div>
+            </div>
+
+            <button onclick="resetApp()">Evaluate Another Purchase</button>
+        </div>
+
+    </div>
+
+    <div id="help-modal">
+        <div class="modal-content">
+            <h2>Help Me Answer</h2>
+            <p>List your reasons below. Put each new reason on a new line.</p>
+            
+            <div class="t-chart">
+                <div class="t-column">
+                    <h3>😇 The Angel (Reasons to say Yes)</h3>
+                    <textarea id="angel-reasons" placeholder="- It solves my daily headache...&#10;- I will use it every day..."></textarea>
+                </div>
+                <div class="t-column">
+                    <h3>😈 The Devil (Reasons to say No)</h3>
+                    <textarea id="devil-reasons" placeholder="- I have to pay a subscription...&#10;- It takes up counter space..."></textarea>
+                </div>
+            </div>
+
+            <button onclick="tallyReasons()">Tally Reasons</button>
+            
+            <div id="tally-result"></div>
+
+            <button class="secondary" onclick="closeHelpModal()">Close and Answer Question</button>
+        </div>
+    </div>
+
+    <script>
         const questions = [
             {
                 text: "Does this buy me time or steal it?",
                 options: [
-                    { label: "Buys me significant time", points: 10 },
-                    { label: "Neutral or minor time saver", points: 5 },
-                    { label: "Takes up time to learn, maintain, or store", points: -5 }
+                    { label: "buys me significant time", points: 10 },
+                    { label: "is a neutral or minor time saver", points: 5 },
+                    { label: "takes up time to learn, maintain, or store", points: -5 }
                 ]
             },
             {
                 text: "Is this a story, or just a thing?",
                 options: [
-                    { label: "A memorable experience or story", points: 10 },
-                    { label: "A tool that actively enables an experience", points: 5 },
-                    { label: "Just a physical object", points: 0 }
+                    { label: "creates a memorable experience or story", points: 10 },
+                    { label: "is a tool that actively enables an experience", points: 5 },
+                    { label: "is just a physical object", points: 0 }
                 ]
             },
             {
                 text: "Does this bring me closer to people?",
                 options: [
-                    { label: "Yes, it will be shared directly with loved ones", points: 5 },
-                    { label: "It opens up social opportunities", points: 3 },
-                    { label: "No, it is strictly for solitary use", points: 0 }
+                    { label: "will be shared directly with loved ones", points: 5 },
+                    { label: "opens up social opportunities", points: 3 },
+                    { label: "is strictly for solitary use", points: 0 }
                 ]
             },
             {
                 text: "Can I make it a treat rather than a standard?",
                 options: [
-                    { label: "Yes, this is a rare, high-value treat", points: 5 },
-                    { label: "Somewhat, it will be an occasional indulgence", points: 3 },
-                    { label: "No, I am trying to make this a new daily baseline", points: 0 }
+                    { label: "is a rare, high-value treat", points: 5 },
+                    { label: "is an occasional indulgence", points: 3 },
+                    { label: "will become a new daily baseline", points: 0 }
                 ]
             },
             {
                 text: "Can I pay now and enjoy later?",
                 options: [
-                    { label: "Yes, paid upfront with time to anticipate it", points: 5 },
-                    { label: "Immediate consumption upon purchase", points: 0 },
-                    { label: "No, it involves financing or drawing out payments", points: -10 }
+                    { label: "is paid upfront with time to anticipate it", points: 5 },
+                    { label: "will be consumed immediately upon purchase", points: 0 },
+                    { label: "involves financing or drawing out payments", points: -10 }
                 ]
             },
             {
                 text: "What are the associated costs to factor into total cost of ownership?",
                 options: [
-                    { label: "None / Negligible", points: 10 },
-                    { label: "Minor upkeep, cheap accessories, or small subscriptions", points: 0 },
-                    { label: "High ongoing maintenance, rapid depreciation, or premium subscriptions", points: -10 }
+                    { label: "has negligible ongoing costs", points: 10 },
+                    { label: "requires minor upkeep or small subscriptions", points: 0 },
+                    { label: "has high ongoing maintenance or premium subscriptions", points: -10 }
                 ]
             },
             {
                 text: "Does this eliminate an ongoing friction in your life?",
                 options: [
-                    { label: "Solves a daily or highly recurring headache", points: 15 },
-                    { label: "Solves an occasional annoyance", points: 5 },
-                    { label: "Doesn't solve any friction", points: 0 },
-                    { label: "Actually introduces new friction or complexity", points: -5 }
+                    { label: "solves a daily or highly recurring headache", points: 15 },
+                    { label: "solves an occasional annoyance", points: 5 },
+                    { label: "doesn't solve any friction", points: 0 },
+                    { label: "actually introduces new friction or complexity", points: -5 }
                 ]
             },
             {
                 text: "How often will I actually use this?",
                 options: [
-                    { label: "Daily or weekly", points: 15 },
-                    { label: "Monthly or seasonal", points: 5 },
-                    { label: "Rarely, or just for a single event", points: 0 }
+                    { label: "will be used daily or weekly", points: 15 },
+                    { label: "will be used monthly or seasonally", points: 5 },
+                    { label: "will rarely be used", points: 0 }
                 ]
             },
             {
                 text: "Does this align or conflict with my long-term future goals?",
                 options: [
-                    { label: "Directly supports major life goals or future plans", points: 15 },
-                    { label: "Neutral", points: 0 },
-                    { label: "Conflicts with goals by creating unnecessary financial drag", points: -15 }
+                    { label: "directly supports major life goals or future plans", points: 15 },
+                    { label: "is neutral towards my goals", points: 0 },
+                    { label: "conflicts with my goals by creating unnecessary financial drag", points: -15 }
                 ]
             },
             {
                 text: "Could I achieve this same feeling without buying something new?",
                 options: [
-                    { label: "No, this provides completely unique value", points: 10 },
-                    { label: "Yes, but it would require significant effort or time", points: 5 },
-                    { label: "Yes, I already own something similar or can replicate it for free", points: -10 }
+                    { label: "provides completely unique value", points: 10 },
+                    { label: "could be replicated, but would require significant effort", points: 5 },
+                    { label: "can be replicated for free or with something I already own", points: -10 }
                 ]
             }
         ];
 
         let currentQuestionIndex = 0;
         let userScore = 0;
+        let savedAnswers = []; // NEW: Array to store the selected answers for the summary
 
         const costInput = document.getElementById('cost');
         const taxCheckbox = document.getElementById('tax-checkbox');
@@ -119,8 +437,10 @@
             if (answer === 'yes') {
                 showScreen('mandatory-screen');
             } else {
+                // Reset state on start
                 currentQuestionIndex = 0;
                 userScore = 0;
+                savedAnswers = []; 
                 loadQuestion();
                 showScreen('question-screen');
             }
@@ -136,28 +456,36 @@
             const optionsContainer = document.getElementById('options-container');
             optionsContainer.innerHTML = '';
 
-            // Render radio buttons (removed unreliable inline onchange event)
+            // Using array index as value to easily pull the label text later
             q.options.forEach((opt, index) => {
                 const label = document.createElement('label');
                 label.className = 'radio-option';
                 label.innerHTML = `
-                    <input type="radio" name="q-option" value="${opt.points}">
-                    ${opt.label}
+                    <input type="radio" name="q-option" value="${index}">
+                    ${opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}
                 `;
                 optionsContainer.appendChild(label);
             });
         }
 
         function nextQuestion() {
-            // Bulletproof method: Read directly from the DOM when Next is clicked
-            const selectedOption = document.querySelector('input[name="q-option"]:checked');
+            const selectedRadio = document.querySelector('input[name="q-option"]:checked');
             
-            if (!selectedOption) {
+            if (!selectedRadio) {
                 alert("Please select an answer to continue.");
                 return;
             }
 
-            userScore += parseInt(selectedOption.value, 10);
+            const selectedIndex = parseInt(selectedRadio.value, 10);
+            const selectedOption = questions[currentQuestionIndex].options[selectedIndex];
+
+            // NEW: Save the specific answer text and points
+            savedAnswers.push({
+                label: selectedOption.label,
+                points: selectedOption.points
+            });
+
+            userScore += selectedOption.points;
             currentQuestionIndex++;
 
             if (currentQuestionIndex < questions.length) {
@@ -167,10 +495,51 @@
             }
         }
 
+        function generateSummary() {
+            // Filter answers into categories
+            const majorWins = savedAnswers.filter(ans => ans.points >= 10);
+            const redFlags = savedAnswers.filter(ans => ans.points < 0);
+            
+            let summaryHTML = "";
+
+            // Construct Positive Reason
+            if (majorWins.length > 0) {
+                summaryHTML += `<p style="color: var(--success); margin-bottom: 10px;"><strong>✅ Major Wins:</strong> The strongest arguments for this purchase are that it `;
+                const winLabels = majorWins.map(w => w.label);
+                
+                if (winLabels.length === 1) {
+                    summaryHTML += `${winLabels[0]}.</p>`;
+                } else {
+                    const lastWin = winLabels.pop();
+                    summaryHTML += `${winLabels.join(", ")}, and it ${lastWin}.</p>`;
+                }
+            } else {
+                summaryHTML += `<p style="color: var(--warning); margin-bottom: 10px;"><strong>⚠️ Lack of Major Value:</strong> Your score struggled because this item doesn't offer massive, life-improving benefits like daily friction relief or significant time savings.</p>`;
+            }
+
+            // Construct Negative Reason
+            if (redFlags.length > 0) {
+                summaryHTML += `<p style="color: var(--danger);"><strong>🚨 Red Flags:</strong> Your score was penalized heavily because it `;
+                const flagLabels = redFlags.map(f => f.label);
+                
+                if (flagLabels.length === 1) {
+                    summaryHTML += `${flagLabels[0]}.</p>`;
+                } else {
+                    const lastFlag = flagLabels.pop();
+                    summaryHTML += `${flagLabels.join(", ")}, and it ${lastFlag}.</p>`;
+                }
+            } else {
+                summaryHTML += `<p style="color: var(--success);"><strong>🛡️ No Major Drawbacks:</strong> Impressively, this purchase didn't trigger any major financial or friction penalties in the framework.</p>`;
+            }
+
+            return summaryHTML;
+        }
+
         function showResults() {
             document.getElementById('final-score').innerText = `${userScore}/100`;
             const titleEl = document.getElementById('recommendation-title');
             const textEl = document.getElementById('recommendation-text');
+            const customReasonEl = document.getElementById('custom-reason-text');
 
             if (userScore >= 75) {
                 titleEl.innerText = "🟢 Green Light: Buy It";
@@ -185,6 +554,9 @@
                 titleEl.style.color = "var(--danger)";
                 textEl.innerText = "High probability of buyer's remorse or financial drag. Do not purchase. Invest the money elsewhere.";
             }
+
+            // NEW: Inject the dynamic summary
+            customReasonEl.innerHTML = generateSummary();
 
             showScreen('result-screen');
         }
@@ -236,3 +608,5 @@
             resultBox.style.display = 'block';
         }
     </script>
+</body>
+</html>
