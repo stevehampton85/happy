@@ -317,7 +317,6 @@
     </div>
 
     <script>
-        // Updated framework to accommodate both durable goods and consumables/experiences
         const questions = [
             {
                 text: "Does this buy me time or steal it?",
@@ -352,11 +351,11 @@
                 ]
             },
             {
-                text: "Can I pay now and enjoy later?",
+                text: "What is the financial reality of this purchase?",
                 options: [
-                    { label: "is paid upfront with time to anticipate it (e.g., booking a reservation)", points: 5 },
-                    { label: "will be consumed immediately upon purchase", points: 0 },
-                    { label: "involves financing or carrying a credit card balance", points: -10 }
+                    { label: "is paid fully in cash today for long-term use, OR is paid upfront with time to anticipate it", points: 5 },
+                    { label: "is paid fully today but will be consumed immediately (e.g., a meal or quick thrill)", points: 0 },
+                    { label: "involves financing, 'Buy Now Pay Later', or carrying a credit card balance", points: -10 }
                 ]
             },
             {
