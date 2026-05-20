@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Purchase Evaluator</title>
+    <title>Purchase Evaluator & Opportunity Cost</title>
     <style>
         :root {
             --primary: #2563eb;
@@ -36,7 +36,7 @@
 
         #app {
             background-color: var(--card-bg);
-            max-width: 600px;
+            max-width: 650px;
             width: 100%;
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -44,35 +44,29 @@
             position: relative;
         }
 
-        .screen {
-            display: none;
-        }
+        .screen { display: none; }
+        .screen.active { display: block; }
 
-        .screen.active {
-            display: block;
-        }
+        h1, h2, h3 { margin-bottom: 20px; color: var(--text-main); }
+        p { margin-bottom: 20px; color: var(--text-muted); }
 
-        h1, h2 {
-            margin-bottom: 20px;
-            color: var(--text-main);
-        }
-
-        p {
-            margin-bottom: 20px;
-            color: var(--text-muted);
-        }
-
-        .input-group {
+        .input-group { margin-bottom: 20px; }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
             margin-bottom: 20px;
         }
 
-        input[type="number"] {
+        input[type="number"], input[type="text"], select {
             width: 100%;
             padding: 12px;
             border: 1px solid var(--border);
             border-radius: 6px;
             font-size: 16px;
             margin-bottom: 10px;
+            background: white;
         }
 
         label {
@@ -80,16 +74,12 @@
             align-items: center;
             gap: 10px;
             cursor: pointer;
-            padding: 10px 0;
+            padding: 5px 0;
+            font-size: 14px;
+            font-weight: 500;
         }
 
-        .radio-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
+        .radio-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .radio-option {
             background: var(--bg-color);
             border: 1px solid var(--border);
@@ -98,14 +88,8 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-
-        .radio-option:hover {
-            border-color: var(--primary);
-        }
-
-        input[type="radio"] {
-            margin-right: 10px;
-        }
+        .radio-option:hover { border-color: var(--primary); }
+        input[type="radio"] { margin-right: 10px; }
 
         button {
             background-color: var(--primary);
@@ -118,92 +102,33 @@
             width: 100%;
             transition: background-color 0.2s;
             margin-bottom: 10px;
+            font-weight: 600;
         }
+        button:hover { background-color: var(--primary-hover); }
+        button.secondary { background-color: transparent; color: var(--primary); border: 1px solid var(--primary); }
+        button.secondary:hover { background-color: var(--bg-color); }
 
-        button:hover {
-            background-color: var(--primary-hover);
-        }
-
-        button.secondary {
-            background-color: transparent;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-        }
-
-        button.secondary:hover {
-            background-color: var(--bg-color);
-        }
-
-        /* Modal Styles */
-        #help-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 800px;
-            border-radius: 12px;
-            padding: 30px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .t-chart {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .t-column {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .t-column h3 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 200px;
-            padding: 12px;
+        .section-box {
             border: 1px solid var(--border);
-            border-radius: 6px;
-            resize: vertical;
-        }
-
-        #tally-result {
-            margin: 20px 0;
-            padding: 15px;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
             background: var(--bg-color);
-            border-radius: 6px;
-            font-weight: 500;
-            display: none;
         }
 
-        .progress-bar {
-            height: 6px;
-            background: var(--border);
-            border-radius: 3px;
-            margin-bottom: 20px;
-            overflow: hidden;
+        .progress-bar { height: 6px; background: var(--border); border-radius: 3px; margin-bottom: 20px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
         }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--primary);
-            width: 0%;
-            transition: width 0.3s;
+        .dash-card {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
         }
         
         .custom-reason-box {
@@ -216,10 +141,17 @@
             font-size: 14px;
         }
 
+        /* Modal Styles */
+        #help-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; padding: 20px; z-index: 1000; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 800px; border-radius: 12px; padding: 30px; max-height: 90vh; overflow-y: auto; }
+        .t-chart { display: flex; gap: 20px; margin-bottom: 20px; }
+        .t-column { flex: 1; display: flex; flex-direction: column; }
+        textarea { width: 100%; height: 200px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; resize: vertical; }
+        #tally-result { margin: 20px 0; padding: 15px; background: var(--bg-color); border-radius: 6px; font-weight: 500; display: none; }
+
         @media (max-width: 600px) {
-            .t-chart {
-                flex-direction: column;
-            }
+            .grid-2, .dashboard-grid { grid-template-columns: 1fr; }
+            .t-chart { flex-direction: column; }
         }
     </style>
 </head>
@@ -228,25 +160,65 @@
     <div id="app">
         
         <div id="start-screen" class="screen active">
-            <h1>Purchase Evaluator</h1>
-            <p>Before you buy, let's run the numbers and check the logic to maximize your happiness.</p>
+            <h1 style="text-align: center;">Purchase Evaluator</h1>
+            <p style="text-align: center;">Calculate the future RRSP value of your purchase before running the behavioral framework.</p>
             
-            <div class="input-group">
-                <label for="item-name">What are you buying?</label>
-                <input type="text" id="item-name" placeholder="e.g., New espresso machine" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 15px;">
-                
-                <label for="cost">Estimated Cost ($):</label>
-                <input type="number" id="cost" placeholder="0.00">
-                
-                <label>
-                    <input type="checkbox" id="tax-checkbox">
-                    Calculate true out-of-pocket cost (Add 13% HST)
-                </label>
+            <div class="section-box">
+                <h3 style="margin-bottom: 15px; font-size: 16px;">1. Market & Timeline Variables</h3>
+                <div class="grid-2">
+                    <div>
+                        <label>Years Until Retirement</label>
+                        <input type="number" id="years-retire" value="19">
+                    </div>
+                    <div>
+                        <label>Marginal Tax Rate (%)</label>
+                        <input type="number" id="tax-rate" value="30">
+                    </div>
+                    <div>
+                        <label>Expected Return (%)</label>
+                        <input type="number" id="return-rate" value="7">
+                    </div>
+                    <div>
+                        <label>Inflation Rate (%)</label>
+                        <input type="number" id="inflation" value="2.5">
+                    </div>
+                </div>
             </div>
-            
-            <p id="total-cost-display" style="font-weight: bold; display: none;">Total Cost: $<span id="calculated-cost">0.00</span></p>
 
-            <button onclick="startEvaluation()">Begin Evaluation</button>
+            <div class="section-box">
+                <h3 style="margin-bottom: 15px; font-size: 16px;">2. Base Purchase</h3>
+                <input type="text" id="item-name" placeholder="What are you buying? (e.g., Coffee, TV)">
+                <div class="grid-2">
+                    <div>
+                        <input type="number" id="base-cost" placeholder="Base Cost ($)">
+                    </div>
+                    <div>
+                        <select id="frequency">
+                            <option value="one-time">One-Time Purchase</option>
+                            <option value="daily">Daily</option>
+                            <option value="workdays">Workdays (260/yr)</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 20px; align-items: center; margin-top: 5px;">
+                    <label><input type="checkbox" id="apply-tax" checked> Add Sales Tax</label>
+                    <input type="number" id="sales-tax-rate" value="13" style="width: 80px; margin: 0; padding: 6px;"> %
+                </div>
+            </div>
+
+            <div class="section-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; font-size: 16px;">3. Associated Expenses</h3>
+                    <button class="secondary" style="width: auto; padding: 4px 10px; margin: 0; font-size: 12px;" onclick="addExpenseRow()">+ Add Expense</button>
+                </div>
+                <div id="expenses-container">
+                    </div>
+            </div>
+
+            <button onclick="calculateAndStart()">Calculate True Cost & Begin Evaluation</button>
         </div>
 
         <div id="necessity-screen" class="screen">
@@ -266,24 +238,35 @@
             <div class="progress-bar">
                 <div id="progress-fill" class="progress-fill"></div>
             </div>
-            <h2 id="question-title">Question Text</h2>
+            <h2 id="question-title" style="font-size: 20px;">Question Text</h2>
             <div id="options-container" class="radio-group">
                 </div>
-            <button class="secondary" onclick="openHelpModal()">Help Me Answer (Angel vs. Devil)</button>
-            <button onclick="nextQuestion()">Next Question</button>
+            <div class="grid-2">
+                <button class="secondary" onclick="openHelpModal()">Help Me Answer</button>
+                <button onclick="nextQuestion()">Next Question</button>
+            </div>
         </div>
 
         <div id="result-screen" class="screen">
-            <h2>Evaluation Complete</h2>
-            <div style="text-align: center; margin: 30px 0;">
-                <h1 id="final-score" style="font-size: 48px; margin: 0;">0/100</h1>
-                <p>Happiness Score</p>
+            <h2 style="text-align: center;">Evaluation Complete</h2>
+            
+            <div class="dashboard-grid">
+                <div class="dash-card" style="background: var(--bg-color); border: 1px solid var(--border);">
+                    <h3 style="margin-bottom: 5px; font-size: 16px;">Happiness Score</h3>
+                    <h1 id="final-score" style="font-size: 42px; margin: 0; color: var(--primary);">0/100</h1>
+                    <p id="recommendation-title" style="margin: 10px 0 0 0; font-weight: bold;"></p>
+                </div>
+                <div class="dash-card" style="background: #fee2e2; border: 1px solid #fca5a5;">
+                    <h3 style="margin-bottom: 5px; font-size: 16px; color: #991b1b;">Future RRSP Value Lost</h3>
+                    <h1 id="final-fv" style="font-size: 32px; margin: 0; color: var(--danger);">$0.00</h1>
+                    <p style="margin: 10px 0 0 0; font-size: 12px; color: #7f1d1d;">Pre-tax equivalent over timeline</p>
+                </div>
             </div>
-            <h3 id="recommendation-title" style="margin-bottom: 10px;"></h3>
-            <p id="recommendation-text"></p>
+
+            <p id="recommendation-text" style="text-align: center; font-weight: 500;"></p>
             
             <div class="custom-reason-box">
-                <h4 style="margin-bottom: 10px; color: var(--text-main);">Why did you get this score?</h4>
+                <h4 style="margin-bottom: 10px; color: var(--text-main);">The Behavioral Breakdown</h4>
                 <div id="custom-reason-text"></div>
             </div>
 
@@ -294,29 +277,30 @@
 
     <div id="help-modal">
         <div class="modal-content">
-            <h2>Help Me Answer</h2>
-            <p>List your reasons below. Put each new reason on a new line.</p>
-            
+            <h2>Angel vs. Devil</h2>
             <div class="t-chart">
                 <div class="t-column">
-                    <h3>😇 The Angel (Reasons to say Yes)</h3>
-                    <textarea id="angel-reasons" placeholder="- It solves my daily headache...&#10;- I will use it every day..."></textarea>
+                    <h3>😇 Reasons to say Yes</h3>
+                    <textarea id="angel-reasons"></textarea>
                 </div>
                 <div class="t-column">
-                    <h3>😈 The Devil (Reasons to say No)</h3>
-                    <textarea id="devil-reasons" placeholder="- I have to pay a subscription...&#10;- It takes up counter space..."></textarea>
+                    <h3>😈 Reasons to say No</h3>
+                    <textarea id="devil-reasons"></textarea>
                 </div>
             </div>
-
             <button onclick="tallyReasons()">Tally Reasons</button>
-            
             <div id="tally-result"></div>
-
-            <button class="secondary" onclick="closeHelpModal()">Close and Answer Question</button>
+            <button class="secondary" onclick="closeHelpModal()">Close</button>
         </div>
     </div>
 
     <script>
+        // Data and State Variables
+        let calculatedFutureValue = 0;
+        let currentQuestionIndex = 0;
+        let userScore = 0;
+        let savedAnswers = []; 
+
         const questions = [
             {
                 text: "Does this buy me time or steal it?",
@@ -401,204 +385,6 @@
             }
         ];
 
-        let currentQuestionIndex = 0;
-        let userScore = 0;
-        let savedAnswers = []; 
-
-        const costInput = document.getElementById('cost');
-        const taxCheckbox = document.getElementById('tax-checkbox');
-        const costDisplay = document.getElementById('total-cost-display');
-        const calculatedCost = document.getElementById('calculated-cost');
-
-        function updateCost() {
-            let base = parseFloat(costInput.value) || 0;
-            if (base > 0) {
-                costDisplay.style.display = 'block';
-                let total = taxCheckbox.checked ? base * 1.13 : base;
-                calculatedCost.textContent = total.toFixed(2);
-            } else {
-                costDisplay.style.display = 'none';
-            }
-        }
-
-        costInput.addEventListener('input', updateCost);
-        taxCheckbox.addEventListener('change', updateCost);
-
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-        }
-
-        function startEvaluation() {
-            showScreen('necessity-screen');
-        }
-
-        function handleNecessity(answer) {
-            if (answer === 'yes') {
-                showScreen('mandatory-screen');
-            } else {
-                currentQuestionIndex = 0;
-                userScore = 0;
-                savedAnswers = []; 
-                loadQuestion();
-                showScreen('question-screen');
-            }
-        }
-
-        function loadQuestion() {
-            const q = questions[currentQuestionIndex];
-            document.getElementById('question-title').innerText = `${currentQuestionIndex + 1}. ${q.text}`;
-            
-            const progress = (currentQuestionIndex / questions.length) * 100;
-            document.getElementById('progress-fill').style.width = `${progress}%`;
-
-            const optionsContainer = document.getElementById('options-container');
-            optionsContainer.innerHTML = '';
-
-            q.options.forEach((opt, index) => {
-                const label = document.createElement('label');
-                label.className = 'radio-option';
-                label.innerHTML = `
-                    <input type="radio" name="q-option" value="${index}">
-                    ${opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}
-                `;
-                optionsContainer.appendChild(label);
-            });
-        }
-
-        function nextQuestion() {
-            const selectedRadio = document.querySelector('input[name="q-option"]:checked');
-            
-            if (!selectedRadio) {
-                alert("Please select an answer to continue.");
-                return;
-            }
-
-            const selectedIndex = parseInt(selectedRadio.value, 10);
-            const selectedOption = questions[currentQuestionIndex].options[selectedIndex];
-
-            savedAnswers.push({
-                label: selectedOption.label,
-                points: selectedOption.points
-            });
-
-            userScore += selectedOption.points;
-            currentQuestionIndex++;
-
-            if (currentQuestionIndex < questions.length) {
-                loadQuestion();
-            } else {
-                showResults();
-            }
-        }
-
-        function generateSummary() {
-            const majorWins = savedAnswers.filter(ans => ans.points >= 10);
-            const redFlags = savedAnswers.filter(ans => ans.points < 0);
-            
-            let summaryHTML = "";
-
-            if (majorWins.length > 0) {
-                summaryHTML += `<p style="color: var(--success); margin-bottom: 10px;"><strong>✅ Major Wins:</strong> The strongest arguments for this purchase are that it `;
-                const winLabels = majorWins.map(w => w.label);
-                
-                if (winLabels.length === 1) {
-                    summaryHTML += `${winLabels[0]}.</p>`;
-                } else {
-                    const lastWin = winLabels.pop();
-                    summaryHTML += `${winLabels.join(", ")}, and it ${lastWin}.</p>`;
-                }
-            } else {
-                summaryHTML += `<p style="color: var(--warning); margin-bottom: 10px;"><strong>⚠️ Lack of Major Value:</strong> Your score struggled because this item doesn't offer massive, life-improving benefits like daily friction relief or significant time savings.</p>`;
-            }
-
-            if (redFlags.length > 0) {
-                summaryHTML += `<p style="color: var(--danger);"><strong>🚨 Red Flags:</strong> Your score was penalized heavily because it `;
-                const flagLabels = redFlags.map(f => f.label);
-                
-                if (flagLabels.length === 1) {
-                    summaryHTML += `${flagLabels[0]}.</p>`;
-                } else {
-                    const lastFlag = flagLabels.pop();
-                    summaryHTML += `${flagLabels.join(", ")}, and it ${lastFlag}.</p>`;
-                }
-            } else {
-                summaryHTML += `<p style="color: var(--success);"><strong>🛡️ No Major Drawbacks:</strong> Impressively, this purchase didn't trigger any major financial or friction penalties in the framework.</p>`;
-            }
-
-            return summaryHTML;
-        }
-
-        function showResults() {
-            document.getElementById('final-score').innerText = `${userScore}/100`;
-            const titleEl = document.getElementById('recommendation-title');
-            const textEl = document.getElementById('recommendation-text');
-            const customReasonEl = document.getElementById('custom-reason-text');
-
-            if (userScore >= 75) {
-                titleEl.innerText = "🟢 Green Light: Buy It";
-                titleEl.style.color = "var(--success)";
-                textEl.innerText = "This purchase offers a high emotional return with low operational friction. Make the purchase with confidence.";
-            } else if (userScore >= 40) {
-                titleEl.innerText = "🟡 Yellow Light: Pause";
-                titleEl.style.color = "var(--warning)";
-                textEl.innerText = "The value here is mixed. Enforce a 48-hour cooling-off period before deciding.";
-            } else {
-                titleEl.innerText = "🔴 Red Light: Stop";
-                titleEl.style.color = "var(--danger)";
-                textEl.innerText = "High probability of buyer's remorse or financial drag. Do not purchase. Invest the money elsewhere.";
-            }
-
-            customReasonEl.innerHTML = generateSummary();
-
-            showScreen('result-screen');
-        }
-
-        function resetApp() {
-            document.getElementById('item-name').value = '';
-            document.getElementById('cost').value = '';
-            document.getElementById('tax-checkbox').checked = false;
-            costDisplay.style.display = 'none';
-            showScreen('start-screen');
-        }
-
-        function openHelpModal() {
-            document.getElementById('angel-reasons').value = '';
-            document.getElementById('devil-reasons').value = '';
-            document.getElementById('tally-result').style.display = 'none';
-            document.getElementById('help-modal').style.display = 'flex';
-        }
-
-        function closeHelpModal() {
-            document.getElementById('help-modal').style.display = 'none';
-        }
-
-        function countLines(textareaId) {
-            const text = document.getElementById(textareaId).value;
-            if (!text.trim()) return 0;
-            return text.split('\n').filter(line => line.trim() !== '').length;
-        }
-
-        function tallyReasons() {
-            const angelCount = countLines('angel-reasons');
-            const devilCount = countLines('devil-reasons');
-            const resultBox = document.getElementById('tally-result');
-            
-            let resultText = `You came up with <strong>${angelCount}</strong> reasons for Yes, and <strong>${devilCount}</strong> reasons for No. <br><br>`;
-
-            if (angelCount > devilCount) {
-                resultText += "You came up with more reasons to answer affirmatively. Look closely at your Devil's list—is there one clear, major reason that overrules everything else?";
-            } else if (devilCount > angelCount) {
-                resultText += "The drawbacks outnumber the benefits here. Unless there is an overwhelming reason on the Angel's side, this leans toward a negative choice.";
-            } else if (angelCount === 0 && devilCount === 0) {
-                resultText = "Please list some reasons in the boxes above to generate a tally.";
-            } else {
-                resultText += "It's a dead tie. Review both lists. Which side carries heavier long-term consequences?";
-            }
-
-            resultBox.innerHTML = resultText;
-            resultBox.style.display = 'block';
-        }
-    </script>
-</body>
-</html>
+        // Core Financial Calculation
+        function calculateAndStart() {
+            let years =
