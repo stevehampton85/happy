@@ -47,8 +47,9 @@
         .screen { display: none; }
         .screen.active { display: block; }
 
-        h1, h2, h3 { margin-bottom: 20px; color: var(--text-main); }
+        h1, h2, h3 { margin-bottom: 5px; color: var(--text-main); }
         p { margin-bottom: 20px; color: var(--text-muted); }
+        .helper-text { font-size: 13px; color: var(--text-muted); margin-bottom: 15px; display: block; line-height: 1.4; }
 
         .input-group { margin-bottom: 20px; }
         
@@ -56,7 +57,14 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
         }
 
         input[type="number"], input[type="text"], select {
@@ -65,7 +73,7 @@
             border: 1px solid var(--border);
             border-radius: 6px;
             font-size: 16px;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             background: white;
         }
 
@@ -77,6 +85,13 @@
             padding: 5px 0;
             font-size: 14px;
             font-weight: 500;
+        }
+        
+        .label-title {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+            display: block;
         }
 
         .radio-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
@@ -150,7 +165,7 @@
         #tally-result { margin: 20px 0; padding: 15px; background: var(--bg-color); border-radius: 6px; font-weight: 500; display: none; }
 
         @media (max-width: 600px) {
-            .grid-2, .dashboard-grid { grid-template-columns: 1fr; }
+            .grid-2, .grid-3, .dashboard-grid { grid-template-columns: 1fr; }
             .t-chart { flex-direction: column; }
         }
     </style>
@@ -161,46 +176,57 @@
         
         <div id="start-screen" class="screen active">
             <h1 style="text-align: center;">Purchase Evaluator</h1>
-            <p style="text-align: center;">Calculate the future RRSP value of your purchase before running the behavioral framework.</p>
+            <p style="text-align: center;">Find out what that purchase is actually costing your retirement before running the behavioral framework.</p>
             
             <div class="section-box">
-                <h3 style="margin-bottom: 15px; font-size: 16px;">1. Market & Timeline Variables</h3>
+                <h3 style="font-size: 16px;">1. Market & Timeline Variables</h3>
+                <span class="helper-text">These numbers determine the compound interest and tax refunds you sacrifice by spending this money today.</span>
                 <div class="grid-2">
                     <div>
-                        <label>Years Until Retirement</label>
+                        <span class="label-title">Years Until Retirement</span>
                         <input type="number" id="years-retire" value="19">
                     </div>
                     <div>
-                        <label>Marginal Tax Rate (%)</label>
+                        <span class="label-title">Marginal Tax Rate (%)</span>
                         <input type="number" id="tax-rate" value="30">
                     </div>
                     <div>
-                        <label>Expected Return (%)</label>
+                        <span class="label-title">Expected Return (%)</span>
                         <input type="number" id="return-rate" value="7">
                     </div>
                     <div>
-                        <label>Inflation Rate (%)</label>
+                        <span class="label-title">Inflation Rate (%)</span>
                         <input type="number" id="inflation" value="2.5">
                     </div>
                 </div>
             </div>
 
             <div class="section-box">
-                <h3 style="margin-bottom: 15px; font-size: 16px;">2. Base Purchase</h3>
-                <input type="text" id="item-name" placeholder="What are you buying? (e.g., Coffee, TV)">
-                <div class="grid-2">
+                <h3 style="font-size: 16px;">2. Base Purchase</h3>
+                <span class="helper-text">What is the core item or experience you are considering buying?</span>
+                
+                <span class="label-title">Item / Habit Name</span>
+                <input type="text" id="item-name" placeholder="e.g., Daily Coffee, New TV">
+                
+                <div class="grid-3">
                     <div>
-                        <input type="number" id="base-cost" placeholder="Base Cost ($)">
+                        <span class="label-title">Base Cost ($)</span>
+                        <input type="number" id="base-cost" placeholder="0.00">
                     </div>
                     <div>
+                        <span class="label-title">Frequency</span>
                         <select id="frequency">
                             <option value="one-time">One-Time Purchase</option>
-                            <option value="daily">Daily</option>
+                            <option value="daily">Daily (365/yr)</option>
                             <option value="workdays">Workdays (260/yr)</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
-                            <option value="yearly">Yearly</option>
+                            <option value="weekly">Weekly (52/yr)</option>
+                            <option value="monthly">Monthly (12/yr)</option>
+                            <option value="yearly">Yearly (1/yr)</option>
                         </select>
+                    </div>
+                    <div>
+                        <span class="label-title">Lifespan (Years)</span>
+                        <input type="number" id="lifespan" placeholder="e.g., 5">
                     </div>
                 </div>
                 <div style="display: flex; gap: 20px; align-items: center; margin-top: 5px;">
@@ -210,28 +236,30 @@
             </div>
 
             <div class="section-box">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <h3 style="margin: 0; font-size: 16px;">3. Associated Expenses</h3>
-                    <button class="secondary" style="width: auto; padding: 4px 10px; margin: 0; font-size: 12px;" onclick="addExpenseRow()">+ Add Expense</button>
+                    <button type="button" class="secondary" style="width: auto; padding: 6px 12px; margin: 0; font-size: 13px;" onclick="addExpenseRow()">+ Add Expense</button>
                 </div>
+                <span class="helper-text">There are normally additional costs in buying or maintaining an item. For a daily trip to the coffee shop you might burn $0.60 in fuel. For a boat, you may have expenses like renting a slip, fuel, and repairs. Add all associated expenses below.</span>
+                
                 <div id="expenses-container">
                     </div>
             </div>
 
-            <button onclick="calculateAndStart()">Calculate True Cost & Begin Evaluation</button>
+            <button type="button" onclick="calculateAndStart()">Calculate True Cost & Begin Evaluation</button>
         </div>
 
         <div id="necessity-screen" class="screen">
             <h2>The Gatekeeper</h2>
             <p>Is this purchase an absolute necessity?</p>
-            <button onclick="handleNecessity('yes')">Yes, I have no choice</button>
-            <button class="secondary" onclick="handleNecessity('no')">No, this is discretionary</button>
+            <button type="button" onclick="handleNecessity('yes')">Yes, I have no choice</button>
+            <button type="button" class="secondary" onclick="handleNecessity('no')">No, this is discretionary</button>
         </div>
 
         <div id="mandatory-screen" class="screen">
             <h2 style="color: var(--success);">Make the purchase.</h2>
             <p>You have determined this is a necessity. There is no need to evaluate the emotional return on essential items. Make the purchase and move on with your day.</p>
-            <button onclick="resetApp()">Start Over</button>
+            <button type="button" onclick="resetApp()">Start Over</button>
         </div>
 
         <div id="question-screen" class="screen">
@@ -242,8 +270,8 @@
             <div id="options-container" class="radio-group">
                 </div>
             <div class="grid-2">
-                <button class="secondary" onclick="openHelpModal()">Help Me Answer</button>
-                <button onclick="nextQuestion()">Next Question</button>
+                <button type="button" class="secondary" onclick="openHelpModal()">Help Me Answer</button>
+                <button type="button" onclick="nextQuestion()">Next Question</button>
             </div>
         </div>
 
@@ -270,7 +298,7 @@
                 <div id="custom-reason-text"></div>
             </div>
 
-            <button onclick="resetApp()">Evaluate Another Purchase</button>
+            <button type="button" onclick="resetApp()">Evaluate Another Purchase</button>
         </div>
 
     </div>
@@ -288,9 +316,9 @@
                     <textarea id="devil-reasons"></textarea>
                 </div>
             </div>
-            <button onclick="tallyReasons()">Tally Reasons</button>
+            <button type="button" onclick="tallyReasons()">Tally Reasons</button>
             <div id="tally-result"></div>
-            <button class="secondary" onclick="closeHelpModal()">Close</button>
+            <button type="button" class="secondary" onclick="closeHelpModal()">Close</button>
         </div>
     </div>
 
@@ -387,4 +415,220 @@
 
         // Core Financial Calculation
         function calculateAndStart() {
-            let years =
+            let years = parseInt(document.getElementById('years-retire').value) || 0;
+            let taxRate = parseFloat(document.getElementById('tax-rate').value) / 100 || 0;
+            let returnRate = parseFloat(document.getElementById('return-rate').value) / 100 || 0;
+            let inflation = parseFloat(document.getElementById('inflation').value) / 100 || 0;
+            let salesTax = parseFloat(document.getElementById('sales-tax-rate').value) / 100 || 0;
+            
+            let baseCost = parseFloat(document.getElementById('base-cost').value) || 0;
+            let lifespan = parseInt(document.getElementById('lifespan').value) || 0;
+            let applyTax = document.getElementById('apply-tax').checked;
+            if (applyTax) baseCost *= (1 + salesTax);
+            
+            let freq = document.getElementById('frequency').value;
+            let multipliers = { 'one-time': 1, 'daily': 365, 'workdays': 260, 'weekly': 52, 'monthly': 12, 'yearly': 1 };
+            
+            // Extract dynamic expenses
+            let expenses = [];
+            document.querySelectorAll('.expense-row').forEach(row => {
+                let c = parseFloat(row.querySelector('.exp-cost').value) || 0;
+                let f = row.querySelector('.exp-freq').value;
+                let t = row.querySelector('.exp-tax').checked;
+                if (t) c *= (1 + salesTax);
+                expenses.push({ cost: c, freq: f });
+            });
+            
+            let totalFV = 0;
+            
+            // Calculate compound interest with inflation, replacements, and RRSP gross-up per year
+            for (let y = 1; y <= years; y++) {
+                let yearlyOutflow = 0;
+                let infFactor = Math.pow(1 + inflation, y - 1);
+                
+                // Handle Base Purchase (Checking for Lifespan replacements if one-time)
+                if (freq === 'one-time') {
+                    if (y === 1 || (lifespan > 0 && (y - 1) % lifespan === 0)) {
+                        yearlyOutflow += baseCost * infFactor;
+                    }
+                } else {
+                    yearlyOutflow += baseCost * multipliers[freq] * infFactor;
+                }
+                
+                // Handle Expenses
+                expenses.forEach(exp => {
+                    if (exp.freq === 'one-time') {
+                        if (y === 1) yearlyOutflow += exp.cost; // Assuming one-time expenses happen in Year 1
+                    } else {
+                        yearlyOutflow += exp.cost * multipliers[exp.freq] * infFactor;
+                    }
+                });
+                
+                if (yearlyOutflow > 0) {
+                    // Calculate Pre-Tax Equivalent (RRSP Gross-Up)
+                    let preTaxEquivalent = yearlyOutflow / (1 - taxRate);
+                    let futureValue = preTaxEquivalent * Math.pow(1 + returnRate, years - y + 1);
+                    totalFV += futureValue;
+                }
+            }
+            
+            calculatedFutureValue = totalFV;
+            showScreen('necessity-screen');
+        }
+
+        function addExpenseRow() {
+            const container = document.getElementById('expenses-container');
+            const row = document.createElement('div');
+            row.className = 'expense-row';
+            row.style.borderLeft = "3px solid var(--primary)";
+            row.style.paddingLeft = "15px";
+            row.style.marginBottom = "15px";
+            row.innerHTML = `
+                <input type="text" placeholder="Expense Name (e.g., Gas, Subscriptions)" style="margin-bottom:10px;">
+                <div class="grid-2" style="margin-bottom: 0;">
+                    <input type="number" class="exp-cost" placeholder="Cost ($)">
+                    <select class="exp-freq">
+                        <option value="one-time">One-Time</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                    <label><input type="checkbox" class="exp-tax"> Add Tax</label>
+                    <button type="button" class="secondary" style="width: auto; padding: 4px 10px; font-size: 12px; margin:0;" onclick="this.parentElement.parentElement.remove()">Remove</button>
+                </div>
+            `;
+            container.appendChild(row);
+        }
+
+        // Navigation and Logic
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function handleNecessity(answer) {
+            if (answer === 'yes') {
+                showScreen('mandatory-screen');
+            } else {
+                currentQuestionIndex = 0;
+                userScore = 0;
+                savedAnswers = []; 
+                loadQuestion();
+                showScreen('question-screen');
+            }
+        }
+
+        function loadQuestion() {
+            const q = questions[currentQuestionIndex];
+            document.getElementById('question-title').innerText = `${currentQuestionIndex + 1}. ${q.text}`;
+            
+            const progress = (currentQuestionIndex / questions.length) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, index) => {
+                const label = document.createElement('label');
+                label.className = 'radio-option';
+                label.innerHTML = `<input type="radio" name="q-option" value="${index}">${opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}`;
+                optionsContainer.appendChild(label);
+            });
+        }
+
+        function nextQuestion() {
+            const selectedRadio = document.querySelector('input[name="q-option"]:checked');
+            if (!selectedRadio) { alert("Please select an answer to continue."); return; }
+
+            const selectedIndex = parseInt(selectedRadio.value, 10);
+            const selectedOption = questions[currentQuestionIndex].options[selectedIndex];
+
+            savedAnswers.push({ label: selectedOption.label, points: selectedOption.points });
+            userScore += selectedOption.points;
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function generateSummary() {
+            const majorWins = savedAnswers.filter(ans => ans.points >= 10);
+            const redFlags = savedAnswers.filter(ans => ans.points < 0);
+            let summaryHTML = "";
+
+            if (majorWins.length > 0) {
+                summaryHTML += `<p style="color: var(--success); margin-bottom: 10px;"><strong>✅ Major Wins:</strong> The strongest arguments for this purchase are that it `;
+                const winLabels = majorWins.map(w => w.label);
+                if (winLabels.length === 1) summaryHTML += `${winLabels[0]}.</p>`;
+                else summaryHTML += `${winLabels.slice(0,-1).join(", ")}, and it ${winLabels[winLabels.length-1]}.</p>`;
+            } else {
+                summaryHTML += `<p style="color: var(--warning); margin-bottom: 10px;"><strong>⚠️ Lack of Major Value:</strong> Your score struggled because this item doesn't offer massive, life-improving benefits like daily friction relief or significant time savings.</p>`;
+            }
+
+            if (redFlags.length > 0) {
+                summaryHTML += `<p style="color: var(--danger);"><strong>🚨 Red Flags:</strong> Your score was penalized heavily because it `;
+                const flagLabels = redFlags.map(f => f.label);
+                if (flagLabels.length === 1) summaryHTML += `${flagLabels[0]}.</p>`;
+                else summaryHTML += `${flagLabels.slice(0,-1).join(", ")}, and it ${flagLabels[flagLabels.length-1]}.</p>`;
+            } else {
+                summaryHTML += `<p style="color: var(--success);"><strong>🛡️ No Major Drawbacks:</strong> Impressively, this purchase didn't trigger any major financial or friction penalties in the framework.</p>`;
+            }
+            return summaryHTML;
+        }
+
+        function showResults() {
+            // Display Formatted Opportunity Cost
+            const formattedFV = new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(calculatedFutureValue);
+            document.getElementById('final-fv').innerText = formattedFV;
+            
+            document.getElementById('final-score').innerText = `${userScore}/100`;
+            const titleEl = document.getElementById('recommendation-title');
+            const textEl = document.getElementById('recommendation-text');
+
+            if (userScore >= 75) {
+                titleEl.innerText = "🟢 Green Light: Buy It"; titleEl.style.color = "var(--success)";
+                textEl.innerText = `You are sacrificing ${formattedFV} in future value, but the emotional and practical return justifies the expense.`;
+            } else if (userScore >= 40) {
+                titleEl.innerText = "🟡 Yellow Light: Pause"; titleEl.style.color = "var(--warning)";
+                textEl.innerText = `You are sacrificing ${formattedFV} in future value for a mixed emotional return. Enforce a 48-hour cooling-off period.`;
+            } else {
+                titleEl.innerText = "🔴 Red Light: Stop"; titleEl.style.color = "var(--danger)";
+                textEl.innerText = `This purchase is actively damaging your financial future. Do not trade ${formattedFV} for something with such a low emotional return.`;
+            }
+
+            document.getElementById('custom-reason-text').innerHTML = generateSummary();
+            showScreen('result-screen');
+        }
+
+        function resetApp() {
+            document.getElementById('base-cost').value = '';
+            document.getElementById('item-name').value = '';
+            document.getElementById('lifespan').value = '';
+            document.getElementById('expenses-container').innerHTML = '';
+            showScreen('start-screen');
+        }
+
+        // Modal Logic
+        function openHelpModal() { document.getElementById('angel-reasons').value = ''; document.getElementById('devil-reasons').value = ''; document.getElementById('tally-result').style.display = 'none'; document.getElementById('help-modal').style.display = 'flex'; }
+        function closeHelpModal() { document.getElementById('help-modal').style.display = 'none'; }
+        function countLines(id) { const text = document.getElementById(id).value; return text.trim() ? text.split('\n').filter(line => line.trim() !== '').length : 0; }
+        
+        function tallyReasons() {
+            const a = countLines('angel-reasons'), d = countLines('devil-reasons');
+            const r = document.getElementById('tally-result');
+            let txt = `You came up with <strong>${a}</strong> reasons for Yes, and <strong>${d}</strong> reasons for No. <br><br>`;
+            if (a > d) txt += "You came up with more reasons to answer affirmatively. Look closely at your Devil's list—is there one clear, major reason that overrules everything else?";
+            else if (d > a) txt += "The drawbacks outnumber the benefits here. Unless there is an overwhelming reason on the Angel's side, this leans toward a negative choice.";
+            else if (a === 0 && d === 0) txt = "Please list some reasons in the boxes above to generate a tally.";
+            else txt += "It's a dead tie. Review both lists. Which side carries heavier long-term consequences?";
+            r.innerHTML = txt; r.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
