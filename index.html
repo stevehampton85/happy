@@ -92,6 +92,7 @@
             color: var(--text-muted);
             margin-bottom: 2px;
             display: block;
+            font-weight: 500;
         }
 
         .radio-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
@@ -158,15 +159,21 @@
 
         /* Modal Styles */
         #help-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; padding: 20px; z-index: 1000; }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 800px; border-radius: 12px; padding: 30px; max-height: 90vh; overflow-y: auto; }
-        .t-chart { display: flex; gap: 20px; margin-bottom: 20px; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 1000px; border-radius: 12px; padding: 30px; max-height: 90vh; overflow-y: auto; }
+        
+        .dynamic-help-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
         .t-column { flex: 1; display: flex; flex-direction: column; }
         textarea { width: 100%; height: 200px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; resize: vertical; }
         #tally-result { margin: 20px 0; padding: 15px; background: var(--bg-color); border-radius: 6px; font-weight: 500; display: none; }
 
         @media (max-width: 600px) {
             .grid-2, .grid-3, .dashboard-grid { grid-template-columns: 1fr; }
-            .t-chart { flex-direction: column; }
         }
     </style>
 </head>
@@ -225,7 +232,7 @@
                         </select>
                     </div>
                     <div>
-                        <span class="label-title">Lifespan (Years)</span>
+                        <span class="label-title">Lifespan <span style="font-weight:normal; font-size:11px; color:#94a3b8;">(0 for consumables)</span></span>
                         <input type="number" id="lifespan" placeholder="e.g., 5">
                     </div>
                 </div>
@@ -267,12 +274,15 @@
                 <div id="progress-fill" class="progress-fill"></div>
             </div>
             <h2 id="question-title" style="font-size: 20px;">Question Text</h2>
+            
             <div id="options-container" class="radio-group">
                 </div>
-            <div class="grid-2">
-                <button type="button" class="secondary" onclick="openHelpModal()">Help Me Answer</button>
-                <button type="button" onclick="nextQuestion()">Next Question</button>
+            
+            <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+                <button type="button" class="secondary" style="flex: 1; margin: 0;" onclick="previousQuestion()">Back</button>
+                <button type="button" style="flex: 2; margin: 0;" onclick="nextQuestion()">Next Question</button>
             </div>
+            <button type="button" class="secondary" style="margin-bottom: 0;" onclick="openHelpModal()">Help Me Answer</button>
         </div>
 
         <div id="result-screen" class="screen">
@@ -305,17 +315,12 @@
 
     <div id="help-modal">
         <div class="modal-content">
-            <h2>Angel vs. Devil</h2>
-            <div class="t-chart">
-                <div class="t-column">
-                    <h3>😇 Reasons to say Yes</h3>
-                    <textarea id="angel-reasons"></textarea>
+            <h2>Help Me Answer</h2>
+            <p style="margin-bottom: 15px; color: var(--text-muted);">List your reasons below for each potential answer. Put each new reason on a new line.</p>
+            
+            <div id="dynamic-help-columns" class="dynamic-help-grid">
                 </div>
-                <div class="t-column">
-                    <h3>😈 Reasons to say No</h3>
-                    <textarea id="devil-reasons"></textarea>
-                </div>
-            </div>
+            
             <button type="button" onclick="tallyReasons()">Tally Reasons</button>
             <div id="tally-result"></div>
             <button type="button" class="secondary" onclick="closeHelpModal()">Close</button>
@@ -371,11 +376,11 @@
                 ]
             },
             {
-                text: "What are the associated costs to factor into total cost of ownership?",
+                text: "Am I buying this for my actual self, or an idealized 'fantasy' version of myself?",
                 options: [
-                    { label: "is a consumable with zero ongoing costs, or has negligible upkeep", points: 10 },
-                    { label: "requires minor upkeep or small subscriptions", points: 0 },
-                    { label: "has high ongoing maintenance or premium subscriptions", points: -10 }
+                    { label: "perfectly fits my actual self and current proven habits", points: 10 },
+                    { label: "is aspirational, but I have a realistic plan to integrate it", points: 0 },
+                    { label: "is strictly for 'Fantasy Me' (the version of me who suddenly has entirely new habits)", points: -10 }
                 ]
             },
             {
@@ -429,7 +434,6 @@
             let freq = document.getElementById('frequency').value;
             let multipliers = { 'one-time': 1, 'daily': 365, 'workdays': 260, 'weekly': 52, 'monthly': 12, 'yearly': 1 };
             
-            // Extract dynamic expenses
             let expenses = [];
             document.querySelectorAll('.expense-row').forEach(row => {
                 let c = parseFloat(row.querySelector('.exp-cost').value) || 0;
@@ -441,12 +445,10 @@
             
             let totalFV = 0;
             
-            // Calculate compound interest with inflation, replacements, and RRSP gross-up per year
             for (let y = 1; y <= years; y++) {
                 let yearlyOutflow = 0;
                 let infFactor = Math.pow(1 + inflation, y - 1);
                 
-                // Handle Base Purchase (Checking for Lifespan replacements if one-time)
                 if (freq === 'one-time') {
                     if (y === 1 || (lifespan > 0 && (y - 1) % lifespan === 0)) {
                         yearlyOutflow += baseCost * infFactor;
@@ -455,17 +457,15 @@
                     yearlyOutflow += baseCost * multipliers[freq] * infFactor;
                 }
                 
-                // Handle Expenses
                 expenses.forEach(exp => {
                     if (exp.freq === 'one-time') {
-                        if (y === 1) yearlyOutflow += exp.cost; // Assuming one-time expenses happen in Year 1
+                        if (y === 1) yearlyOutflow += exp.cost; 
                     } else {
                         yearlyOutflow += exp.cost * multipliers[exp.freq] * infFactor;
                     }
                 });
                 
                 if (yearlyOutflow > 0) {
-                    // Calculate Pre-Tax Equivalent (RRSP Gross-Up)
                     let preTaxEquivalent = yearlyOutflow / (1 - taxRate);
                     let futureValue = preTaxEquivalent * Math.pow(1 + returnRate, years - y + 1);
                     totalFV += futureValue;
@@ -489,10 +489,11 @@
                     <input type="number" class="exp-cost" placeholder="Cost ($)">
                     <select class="exp-freq">
                         <option value="one-time">One-Time</option>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
+                        <option value="daily">Daily (365/yr)</option>
+                        <option value="workdays">Workdays (260/yr)</option>
+                        <option value="weekly">Weekly (52/yr)</option>
+                        <option value="monthly">Monthly (12/yr)</option>
+                        <option value="yearly">Yearly (1/yr)</option>
                     </select>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
@@ -531,12 +532,26 @@
             const optionsContainer = document.getElementById('options-container');
             optionsContainer.innerHTML = '';
 
+            let previousSelectionLabel = savedAnswers[currentQuestionIndex] ? savedAnswers[currentQuestionIndex].label : null;
+
             q.options.forEach((opt, index) => {
                 const label = document.createElement('label');
                 label.className = 'radio-option';
-                label.innerHTML = `<input type="radio" name="q-option" value="${index}">${opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}`;
+                
+                const isChecked = previousSelectionLabel === opt.label ? "checked" : "";
+                
+                label.innerHTML = `<input type="radio" name="q-option" value="${index}" ${isChecked}>${opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}`;
                 optionsContainer.appendChild(label);
             });
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex === 0) {
+                showScreen('necessity-screen');
+            } else {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
         }
 
         function nextQuestion() {
@@ -546,13 +561,13 @@
             const selectedIndex = parseInt(selectedRadio.value, 10);
             const selectedOption = questions[currentQuestionIndex].options[selectedIndex];
 
-            savedAnswers.push({ label: selectedOption.label, points: selectedOption.points });
-            userScore += selectedOption.points;
+            savedAnswers[currentQuestionIndex] = { label: selectedOption.label, points: selectedOption.points };
             currentQuestionIndex++;
 
             if (currentQuestionIndex < questions.length) {
                 loadQuestion();
             } else {
+                userScore = savedAnswers.reduce((sum, ans) => sum + ans.points, 0);
                 showResults();
             }
         }
@@ -583,7 +598,6 @@
         }
 
         function showResults() {
-            // Display Formatted Opportunity Cost
             const formattedFV = new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(calculatedFutureValue);
             document.getElementById('final-fv').innerText = formattedFV;
             
@@ -614,20 +628,60 @@
             showScreen('start-screen');
         }
 
-        // Modal Logic
-        function openHelpModal() { document.getElementById('angel-reasons').value = ''; document.getElementById('devil-reasons').value = ''; document.getElementById('tally-result').style.display = 'none'; document.getElementById('help-modal').style.display = 'flex'; }
-        function closeHelpModal() { document.getElementById('help-modal').style.display = 'none'; }
-        function countLines(id) { const text = document.getElementById(id).value; return text.trim() ? text.split('\n').filter(line => line.trim() !== '').length : 0; }
+        // Dynamic Modal Logic
+        function openHelpModal() { 
+            const q = questions[currentQuestionIndex];
+            const container = document.getElementById('dynamic-help-columns');
+            container.innerHTML = '';
+            
+            q.options.forEach((opt, index) => {
+                const col = document.createElement('div');
+                col.className = 't-column';
+                col.innerHTML = `
+                    <h3 style="font-size:14px; text-align:center; min-height: 40px; color: var(--primary);">${opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}</h3>
+                    <textarea id="help-textarea-${index}" placeholder="- Enter reasons..."></textarea>
+                `;
+                container.appendChild(col);
+            });
+
+            document.getElementById('tally-result').style.display = 'none'; 
+            document.getElementById('help-modal').style.display = 'flex'; 
+        }
+
+        function closeHelpModal() { 
+            document.getElementById('help-modal').style.display = 'none'; 
+        }
         
         function tallyReasons() {
-            const a = countLines('angel-reasons'), d = countLines('devil-reasons');
+            const q = questions[currentQuestionIndex];
+            let maxCount = -1;
+            let maxIndices = [];
+            let totalReasons = 0;
+
+            q.options.forEach((opt, index) => {
+                const text = document.getElementById(`help-textarea-${index}`).value;
+                const count = text.trim() ? text.split('\n').filter(line => line.trim() !== '').length : 0;
+                totalReasons += count;
+                
+                if (count > maxCount) {
+                    maxCount = count;
+                    maxIndices = [index];
+                } else if (count === maxCount) {
+                    maxIndices.push(index);
+                }
+            });
+
             const r = document.getElementById('tally-result');
-            let txt = `You came up with <strong>${a}</strong> reasons for Yes, and <strong>${d}</strong> reasons for No. <br><br>`;
-            if (a > d) txt += "You came up with more reasons to answer affirmatively. Look closely at your Devil's list—is there one clear, major reason that overrules everything else?";
-            else if (d > a) txt += "The drawbacks outnumber the benefits here. Unless there is an overwhelming reason on the Angel's side, this leans toward a negative choice.";
-            else if (a === 0 && d === 0) txt = "Please list some reasons in the boxes above to generate a tally.";
-            else txt += "It's a dead tie. Review both lists. Which side carries heavier long-term consequences?";
-            r.innerHTML = txt; r.style.display = 'block';
+            
+            if (totalReasons === 0) {
+                r.innerHTML = "Please list some reasons in the boxes above to generate a tally.";
+            } else if (maxIndices.length === 1) {
+                r.innerHTML = `You came up with the most reasons (<strong>${maxCount}</strong>) for:<br><br><span style="color:var(--primary); font-weight:bold;">"${q.options[maxIndices[0]].label}"</span><br><br>Unless there is an overriding factor in another column, this might be your most honest answer.`;
+            } else {
+                r.innerHTML = `It's a tie! You have <strong>${maxCount}</strong> reasons for multiple options. Review your tied lists. Which points carry heavier long-term consequences?`;
+            }
+            
+            r.style.display = 'block';
         }
     </script>
 </body>
