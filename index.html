@@ -317,21 +317,22 @@
     </div>
 
     <script>
+        // Updated framework to accommodate both durable goods and consumables/experiences
         const questions = [
             {
                 text: "Does this buy me time or steal it?",
                 options: [
-                    { label: "buys me significant time", points: 10 },
+                    { label: "buys me significant time (e.g., skips a major chore like cooking or cleaning)", points: 10 },
                     { label: "is a neutral or minor time saver", points: 5 },
-                    { label: "takes up time to learn, maintain, or store", points: -5 }
+                    { label: "takes up time to learn, maintain, or travel to", points: -5 }
                 ]
             },
             {
                 text: "Is this a story, or just a thing?",
                 options: [
                     { label: "creates a memorable experience or story", points: 10 },
-                    { label: "is a tool that actively enables an experience", points: 5 },
-                    { label: "is just a physical object", points: 0 }
+                    { label: "is a highly enjoyable consumable or tool", points: 5 },
+                    { label: "is just a standard physical object or forgettable meal", points: 0 }
                 ]
             },
             {
@@ -347,21 +348,21 @@
                 options: [
                     { label: "is a rare, high-value treat", points: 5 },
                     { label: "is an occasional indulgence", points: 3 },
-                    { label: "will become a new daily baseline", points: 0 }
+                    { label: "is becoming a mindless daily/weekly baseline (e.g., habitual takeout)", points: 0 }
                 ]
             },
             {
                 text: "Can I pay now and enjoy later?",
                 options: [
-                    { label: "is paid upfront with time to anticipate it", points: 5 },
+                    { label: "is paid upfront with time to anticipate it (e.g., booking a reservation)", points: 5 },
                     { label: "will be consumed immediately upon purchase", points: 0 },
-                    { label: "involves financing or drawing out payments", points: -10 }
+                    { label: "involves financing or carrying a credit card balance", points: -10 }
                 ]
             },
             {
                 text: "What are the associated costs to factor into total cost of ownership?",
                 options: [
-                    { label: "has negligible ongoing costs", points: 10 },
+                    { label: "is a consumable with zero ongoing costs, or has negligible upkeep", points: 10 },
                     { label: "requires minor upkeep or small subscriptions", points: 0 },
                     { label: "has high ongoing maintenance or premium subscriptions", points: -10 }
                 ]
@@ -369,41 +370,41 @@
             {
                 text: "Does this eliminate an ongoing friction in your life?",
                 options: [
-                    { label: "solves a daily or highly recurring headache", points: 15 },
+                    { label: "solves a highly recurring headache (e.g., severe cooking fatigue after a long week)", points: 15 },
                     { label: "solves an occasional annoyance", points: 5 },
                     { label: "doesn't solve any friction", points: 0 },
                     { label: "actually introduces new friction or complexity", points: -5 }
                 ]
             },
             {
-                text: "How often will I actually use this?",
+                text: "How well will this be utilized?",
                 options: [
-                    { label: "will be used daily or weekly", points: 15 },
-                    { label: "will be used monthly or seasonally", points: 5 },
-                    { label: "will rarely be used", points: 0 }
+                    { label: "will be used constantly OR is a deeply satisfying, fully consumed experience", points: 15 },
+                    { label: "will be used occasionally OR is a moderately satisfying consumable", points: 5 },
+                    { label: "will rarely be used OR is a forgettable, fleeting purchase", points: 0 }
                 ]
             },
             {
                 text: "Does this align or conflict with my long-term future goals?",
                 options: [
-                    { label: "directly supports major life goals or future plans", points: 15 },
+                    { label: "directly supports major goals (e.g., investing in family bonding or mental health)", points: 15 },
                     { label: "is neutral towards my goals", points: 0 },
-                    { label: "conflicts with my goals by creating unnecessary financial drag", points: -15 }
+                    { label: "conflicts with my goals by creating a financial drag or unhealthy habit", points: -15 }
                 ]
             },
             {
                 text: "Could I achieve this same feeling without buying something new?",
                 options: [
                     { label: "provides completely unique value", points: 10 },
-                    { label: "could be replicated, but would require significant effort", points: 5 },
-                    { label: "can be replicated for free or with something I already own", points: -10 }
+                    { label: "could be replicated (e.g., cooking at home), but would require significant effort today", points: 5 },
+                    { label: "can be easily replicated for free or with groceries I already own", points: -10 }
                 ]
             }
         ];
 
         let currentQuestionIndex = 0;
         let userScore = 0;
-        let savedAnswers = []; // NEW: Array to store the selected answers for the summary
+        let savedAnswers = []; 
 
         const costInput = document.getElementById('cost');
         const taxCheckbox = document.getElementById('tax-checkbox');
@@ -437,7 +438,6 @@
             if (answer === 'yes') {
                 showScreen('mandatory-screen');
             } else {
-                // Reset state on start
                 currentQuestionIndex = 0;
                 userScore = 0;
                 savedAnswers = []; 
@@ -456,7 +456,6 @@
             const optionsContainer = document.getElementById('options-container');
             optionsContainer.innerHTML = '';
 
-            // Using array index as value to easily pull the label text later
             q.options.forEach((opt, index) => {
                 const label = document.createElement('label');
                 label.className = 'radio-option';
@@ -479,7 +478,6 @@
             const selectedIndex = parseInt(selectedRadio.value, 10);
             const selectedOption = questions[currentQuestionIndex].options[selectedIndex];
 
-            // NEW: Save the specific answer text and points
             savedAnswers.push({
                 label: selectedOption.label,
                 points: selectedOption.points
@@ -496,13 +494,11 @@
         }
 
         function generateSummary() {
-            // Filter answers into categories
             const majorWins = savedAnswers.filter(ans => ans.points >= 10);
             const redFlags = savedAnswers.filter(ans => ans.points < 0);
             
             let summaryHTML = "";
 
-            // Construct Positive Reason
             if (majorWins.length > 0) {
                 summaryHTML += `<p style="color: var(--success); margin-bottom: 10px;"><strong>✅ Major Wins:</strong> The strongest arguments for this purchase are that it `;
                 const winLabels = majorWins.map(w => w.label);
@@ -517,7 +513,6 @@
                 summaryHTML += `<p style="color: var(--warning); margin-bottom: 10px;"><strong>⚠️ Lack of Major Value:</strong> Your score struggled because this item doesn't offer massive, life-improving benefits like daily friction relief or significant time savings.</p>`;
             }
 
-            // Construct Negative Reason
             if (redFlags.length > 0) {
                 summaryHTML += `<p style="color: var(--danger);"><strong>🚨 Red Flags:</strong> Your score was penalized heavily because it `;
                 const flagLabels = redFlags.map(f => f.label);
@@ -555,7 +550,6 @@
                 textEl.innerText = "High probability of buyer's remorse or financial drag. Do not purchase. Invest the money elsewhere.";
             }
 
-            // NEW: Inject the dynamic summary
             customReasonEl.innerHTML = generateSummary();
 
             showScreen('result-screen');
@@ -569,7 +563,6 @@
             showScreen('start-screen');
         }
 
-        // Modal Logic
         function openHelpModal() {
             document.getElementById('angel-reasons').value = '';
             document.getElementById('devil-reasons').value = '';
